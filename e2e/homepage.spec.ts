@@ -263,3 +263,19 @@ test('verify click on "Hà Đông" area redirects correctly', async ({ page }) =
   await haDongArea.click();
   await expect(page).toHaveURL(/\/danh-sach-ban-bat-dong-san-ha-dong-ha-noi/);
 });
+
+//verifythat click on khu vực Phường Dương Nội having xpath=/html/body/div[2]/main/section/div/div[2]/a[2]/img will redirect to url having "/danh-sach-ban-bat-dong-san-duong-noi-ha-noi"
+test('verify click on "Dương Nội" area redirects correctly', async ({ page }) => {
+  await page.goto('/');
+  const duongNoiArea = page.locator('xpath=/html/body/div[2]/main/section/div/div[2]/a[2]/img');
+  await duongNoiArea.click();
+  await expect(page).toHaveURL(/\/danh-sach-ban-bat-dong-san-duong-noi-ha-noi/);
+});
+
+//verifythat click on khu vực Phường Yên Nghĩa having xpath=/html/body/div[2]/main/section/div/div[2]/a[3]/img will redirect to url having "/danh-sach-ban-bat-dong-san-yen-nghia-ha-noi"
+test('verify click on "Yên Nghĩa" area redirects correctly', async ({ page }) => {
+  await page.goto('/');
+  const yenNghiaArea = page.locator('xpath=/html/body/div[2]/main/section/div/div[2]/a[3]/img');
+  await yenNghiaArea.click();
+  await expect(page).toHaveURL(/\/danh-sach-ban-bat-dong-san-yen-nghia-ha-noi/);
+});
