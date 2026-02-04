@@ -255,3 +255,11 @@ test('verify popular search areas items', async ({ page }) => {
     await expect(areaContainer).toContainText(new RegExp(text, 'ui'));
   }
 });
+
+//verify that click on khu vực phường Hà Đông having xpath=/html/body/div[2]/main/section/div/div[2]/a[1]/img will redirect to url having "/danh-sach-ban-bat-dong-san-ha-dong-ha-noi"
+test('verify click on "Hà Đông" area redirects correctly', async ({ page }) => {
+  await page.goto('/');
+  const haDongArea = page.locator('xpath=/html/body/div[2]/main/section/div/div[2]/a[1]/img');
+  await haDongArea.click();
+  await expect(page).toHaveURL(/\/danh-sach-ban-bat-dong-san-ha-dong-ha-noi/);
+});
