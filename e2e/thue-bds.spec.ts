@@ -95,4 +95,82 @@ test.describe('Thuê BĐS Screen', () => {
         await expect(dropdownBtn).toContainText(cityToSelect);
     });
 
+
+    const expectedWardsAnGiang = [
+        "Tất cả", "An Biên", "An Châu", "An Cư", "An Minh", "An Phú", "Ba Chúc",
+        "Bình An", "Bình Đức", "Bình Giang", "Bình Hòa", "Bình Mỹ", "Bình Sơn",
+        "Bình Thạnh Đông", "Cần Đăng", "Châu Đốc", "Châu Phong", "Châu Phú", "Châu Thành",
+        "Chi Lăng", "Chợ Mới", "Chợ Vàm", "Cô Tô", "Cù Lao Giêng", "Định Hòa", "Định Mỹ",
+        "Đông Hòa", "Đông Hưng", "Đông Thái", "Giang Thành", "Giồng Riềng", "Gò Quao",
+        "Hà Tiên", "Hòa Điền", "Hòa Hưng", "Hòa Lạc", "Hòa Thuận", "Hội An", "Hòn Đất",
+        "Hòn Nghệ", "Khánh Bình", "Kiên Hải", "Kiên Lương", "Long Điền", "Long Kiến",
+        "Long Phú", "Long Thạnh", "Long Xuyên", "Mỹ Đức", "Mỹ Hòa Hưng", "Mỹ Thới",
+        "Mỹ Thuận", "Ngọc Chúc", "Nhơn Hội", "Nhơn Mỹ", "Núi Cấm", "Óc Eo", "Ô Lâm",
+        "Phú An", "Phú Hòa", "Phú Hữu", "Phú Lâm", "Phú Quốc", "Phú Tân", "Rạch Giá",
+        "Sơn Hải", "Sơn Kiên", "Tân An", "Tân Châu", "Tân Hiệp", "Tân Hội", "Tân Thạnh",
+        "Tây Phú", "Tây Yên", "Thới Sơn", "Thạnh Đông", "Thạnh Hưng", "Thạnh Lộc",
+        "Thạnh Mỹ Tây", "Thoại Sơn", "Thổ Châu", "Tiên Hải", "Tịnh Biên", "Tô Châu", "Tri Tôn",
+        "U Minh Thượng", "Vân Khánh", "Vĩnh An", "Vĩnh Bình", "Vĩnh Điều", "Vĩnh Gia",
+        "Vĩnh Hanh", "Vĩnh Hậu", "Vĩnh Hòa", "Vĩnh Hòa Hưng", "Vĩnh Phong", "Vĩnh Tế",
+        "Vĩnh Thạnh Trung", "Vĩnh Thông", "Vĩnh Thuận", "Vĩnh Trạch", "Vĩnh Tuy", "Vĩnh Xương"
+    ];
+
+    test('verify "Phường xã" dropdown shows all correct data when "An Giang" is selected', async ({ page }) => {
+        // 1. Select "An Giang" in City dropdown
+        await page.getByRole('button', { name: 'Thành phố' }).first().click();
+        await page.getByRole('option', { name: 'An Giang', exact: true }).click();
+
+        // 2. Open "Phường xã" dropdown
+        await page.getByRole('button', { name: 'Phường xã' }).first().click();
+        const dropdownList = page.getByRole('listbox');
+        await expect(dropdownList).toBeVisible();
+
+        // 3. The list is virtualized, so we need to scroll to collect all items
+        const foundWards = new Set<string>();
+        let previousCount = -1;
+        let attempts = 0;
+        const maxAttempts = 100; // Increased for long lists
+
+        while (foundWards.size > previousCount && attempts < maxAttempts) {
+            previousCount = foundWards.size;
+
+            const options = await dropdownList.getByRole('option').all();
+            for (const option of options) {
+                const text = await option.innerText();
+                // We only do trim(), no normalization, so that any encoding mismatch (like Mojibake) will be caught.
+                if (text) foundWards.add(text.trim());
+            }
+
+            // Scroll down: Use JS to scroll the parent of the options
+            const firstOption = dropdownList.getByRole('option').first();
+            await firstOption.evaluate(el => {
+                const container = el.closest('.overflow-y-auto');
+                if (container) container.scrollBy(0, container.clientHeight);
+            });
+
+            await page.waitForTimeout(500);
+            attempts++;
+        }
+
+        console.log(`Found ${foundWards.size} unique wards in dropdown.`);
+
+        // Detect discrepancies strictly
+        const missing = expectedWardsAnGiang.filter(w => !foundWards.has(w));
+        const extra = Array.from(foundWards).filter(w => !expectedWardsAnGiang.includes(w));
+
+        if (missing.length > 0) {
+            console.log("❌ Missing or mismatched wards:", missing);
+        }
+        if (extra.length > 0) {
+            console.log("⚠️ Unexpected text found on UI (possibly encoding error):", extra);
+        }
+
+        // Final assertion: every expected ward must exist exactly as written in the list
+        for (const ward of expectedWardsAnGiang) {
+            expect(foundWards.has(ward), `Expected ward "${ward}" was not found or has an encoding issue.`).toBeTruthy();
+        }
+
+        expect(foundWards.size).toBe(expectedWardsAnGiang.length);
+    });
+
 });
